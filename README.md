@@ -1,1 +1,1 @@
-# kvjs
+# key-value json mapper
