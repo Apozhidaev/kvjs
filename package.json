@@ -1,6 +1,6 @@
 {
   "name": "kvjs",
-  "version": "0.0.1",
+  "version": "0.0.8",
   "description": "key-value json mapper",
   "main": "index.js",
   "scripts": {

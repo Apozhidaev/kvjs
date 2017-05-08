@@ -1,4 +1,28 @@
 
+function stringifyValue(value, type) {
+    if (value === undefined || value === null || value === '') return null;
+    switch (type) {
+        case 'date':
+            return value.toJSON();
+        default:
+            return value.toString();
+    }
+}
+
+function parseValue(value, type) {
+    switch (type) {
+        case 'int':
+            return parseInt(value);
+        case 'float':
+            return parseFloat(value);
+        case 'bool':
+            return value === 'true';
+        case 'date':
+            return new Date(value);
+        default:
+            return value;
+    }
+}
 
 function processObjectProps({ keyValues, obj, scheme, prefix = '' }) {
     if (prefix) prefix += '.';
@@ -23,7 +47,7 @@ function processObjectProps({ keyValues, obj, scheme, prefix = '' }) {
             } else {
                 keyValues.push({
                     key,
-                    value: obj[prop].toString()
+                    value: stringifyValue(obj[prop], scheme[prop].type)
                 });
             }
         }
@@ -120,13 +144,13 @@ function processKey({ obj, keys, i, value, scheme, arrays, prefix = '' }) {
                 value,
                 scheme: scheme[key].item.scheme,
                 arrays,
-                prefix
+                prefix: `${prefix}.${id}`
             });
         }
 
 
     } else {
-        obj[scheme[key].prop] = parseType(value, scheme[key].type);
+        obj[scheme[key].prop] = parseValue(value, scheme[key].type);
     }
 }
 
@@ -144,7 +168,7 @@ function restoreArrays(arrays) {
             if (item.id) {
                 let idValues = id.split(',');
                 for (let i = 0; i < item.id.length; i++) {
-                    obj[item.id[i].prop] = parseType(idValues[i], item.id[i].type);
+                    obj[item.id[i].prop] = parseValue(idValues[i], item.id[i].type);
                 }
             }
         }
@@ -182,26 +206,11 @@ function revertItemScheme(item) {
     return revertedItemScheme;
 }
 
-
-function parseType(value, type) {
-    switch (type) {
-        case 'int':
-            return parseInt(value);
-        case 'float':
-            return parseFloat(value);
-        case 'bool':
-            return value === 'true';
-        default:
-            return value;
-    }
-}
-
 function createMapper(scheme) {
 
     let revertedScheme = revertScheme(scheme);
 
-    function toObject(keyValues) {
-        let obj = {};
+    function toObject(keyValues, obj = {}) {
         let arrays = {};
         for (let i = 0; i < keyValues.length; i++) {
             processKeyValue({ obj, keyValue: keyValues[i], scheme: revertedScheme, arrays })
@@ -210,8 +219,7 @@ function createMapper(scheme) {
         return obj;
     }
 
-    function toKeyValues(obj) {
-        let keyValues = [];
+    function toKeyValues(obj, keyValues = []) {
         processObjectProps({ keyValues, obj, scheme });
         return keyValues;
     }
@@ -223,6 +231,43 @@ function createMapper(scheme) {
     }
 }
 
+function clearValues(keyValues) {
+    for (let i = 0; i < keyValues.length; i++) {
+        keyValues[i].value = null;
+    }
+    return keyValues;
+}
+
+function diff(source, target) {
+    let res = [];
+
+    let sourceMap = {};
+    for (let i = 0; i < source.length; i++) {
+        sourceMap[source[i].key] = source[i];
+    }
+    let targetMap = {};
+    for (let i = 0; i < target.length; i++) {
+        targetMap[target[i].key] = target[i];
+    }
+
+    for (let i = 0; i < source.length; i++) {
+        if (!targetMap[source[i].key]) {
+            res.push({
+                key: source[i].key,
+                value: null
+            });
+        }
+    }
+    for (let i = 0; i < target.length; i++) {
+        if (!sourceMap[target[i].key]
+            || sourceMap[target[i].key].value !== targetMap[target[i].key].value) {
+            res.push(target[i]);
+        }
+    }
+    return res;
+}
 
 module.exports.createMapper = createMapper;
 module.exports.revertScheme = revertScheme;
+module.exports.clearValues = clearValues;
+module.exports.diff = diff;

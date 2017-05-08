@@ -27,6 +27,10 @@ describe('kvjs', function () {
                             type: "string",
                             key: "sm"
                         },
+                        creation: {
+                            type: "date",
+                            key: "time"
+                        },
                         content: {
                             type: "object",
                             key: "c",
@@ -134,15 +138,15 @@ describe('kvjs', function () {
             ]
         };
 
-        book.issues.sort((a,b) => a.id - b.id);
-        book.issueLinks.sort((a,b) => a.childId - b.childId);
+        book.issues.sort((a, b) => a.id - b.id);
+        book.issueLinks.sort((a, b) => a.childId - b.childId);
 
         let keyValues = mapper.toKeyValues(book);
 
         let book2 = mapper.toObject(keyValues);
 
-        book2.issues.sort((a,b) => a.id - b.id);
-        book2.issueLinks.sort((a,b) => a.childId - b.childId);
+        book2.issues.sort((a, b) => a.id - b.id);
+        book2.issueLinks.sort((a, b) => a.childId - b.childId);
 
 
         assert.deepEqual(book, book2);
