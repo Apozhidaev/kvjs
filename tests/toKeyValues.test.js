@@ -1,5 +1,5 @@
 const assert = require('assert');
-const {createMapper} = require('../index');
+const {createMapper} = require('../src/index');
 
 describe('kvjs', function () {
 

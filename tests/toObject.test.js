@@ -1,5 +1,5 @@
 const assert = require('assert');
-const kvjs = require('../index');
+const kvjs = require('../src/index');
 
 describe('kvjs', function () {
 
